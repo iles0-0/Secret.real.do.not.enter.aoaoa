@@ -1,3 +1,42 @@
+-- [ COMBAT SECTION ]
+local c1 = CombatTab:CreateToggle({
+   Name = "Kill Aura (Universal)",
+   CurrentValue = false,
+   Callback = function(Value)
+       _G.KillAuraActive = Value
+       if Value then
+           task.spawn(function()
+               while _G.KillAuraActive do
+                   task.wait(0.05) -- Ускорили проверку для 999 стадс
+                   local p = game.Players.LocalPlayer
+                   local char = p.Character
+                   local tool = char and char:FindFirstChildOfClass("Tool")
+                   
+                   -- Проверяем, есть ли меч и есть ли у него Handle
+                   if tool and tool:FindFirstChild("Handle") then
+                       -- Активируем меч (имитация удара), чтобы сервер засчитал урон
+                       tool:Activate() 
+                       
+                       for _, v in pairs(game.Players:GetPlayers()) do
+                           if v ~= p and v.Character and v.Character:FindFirstChild("HumanoidRootPart") and v.Character:FindFirstChild("Humanoid") then
+                               -- Проверяем, что цель жива
+                               if v.Character.Humanoid.Health > 0 then
+                                   local dist = (char.HumanoidRootPart.Position - v.Character.HumanoidRootPart.Position).Magnitude
+                                   if dist <= _G.KillAuraRange then
+                                       -- Бьем по голове (самая большая зона поражения)
+                                       firetouchinterest(v.Character.Head, tool.Handle, 0)
+                                       firetouchinterest(v.Character.Head, tool.Handle, 1)
+                                   end
+                               end
+                           end
+                       end
+                   end
+               end
+           end)
+       end
+   end,
+})
+
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
