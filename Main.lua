@@ -1,6 +1,6 @@
 -- [ COMBAT SECTION ]
 local c1 = CombatTab:CreateToggle({
-   Name = "Kill Aura (Universal)",
+   Name = "Kill Aura (Take weapon)",
    CurrentValue = false,
    Callback = function(Value)
        _G.KillAuraActive = Value
