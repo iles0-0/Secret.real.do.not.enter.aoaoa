@@ -1,42 +1,3 @@
--- [ COMBAT SECTION ]
-local c1 = CombatTab:CreateToggle({
-   Name = "Kill Aura (Universal)",
-   CurrentValue = false,
-   Callback = function(Value)
-       _G.KillAuraActive = Value
-       if Value then
-           task.spawn(function()
-               while _G.KillAuraActive do
-                   task.wait(0.05) -- Ускорили проверку для 999 стадс
-                   local p = game.Players.LocalPlayer
-                   local char = p.Character
-                   local tool = char and char:FindFirstChildOfClass("Tool")
-                   
-                   -- Проверяем, есть ли меч и есть ли у него Handle
-                   if tool and tool:FindFirstChild("Handle") then
-                       -- Активируем меч (имитация удара), чтобы сервер засчитал урон
-                       tool:Activate() 
-                       
-                       for _, v in pairs(game.Players:GetPlayers()) do
-                           if v ~= p and v.Character and v.Character:FindFirstChild("HumanoidRootPart") and v.Character:FindFirstChild("Humanoid") then
-                               -- Проверяем, что цель жива
-                               if v.Character.Humanoid.Health > 0 then
-                                   local dist = (char.HumanoidRootPart.Position - v.Character.HumanoidRootPart.Position).Magnitude
-                                   if dist <= _G.KillAuraRange then
-                                       -- Бьем по голове (самая большая зона поражения)
-                                       firetouchinterest(v.Character.Head, tool.Handle, 0)
-                                       firetouchinterest(v.Character.Head, tool.Handle, 1)
-                                   end
-                               end
-                           end
-                       end
-                   end
-               end
-           end)
-       end
-   end,
-})
-
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
@@ -47,9 +8,10 @@ local Window = Rayfield:CreateWindow({
    KeySystem = false 
 })
 
--- Переменные (Global)
+-- Глобальные переменные
 _G.KillAuraActive = false
 _G.KillAuraRange = 15
+_G.InfJump = false
 
 local function SpawnBlock(name)
     local rs = game:GetService("ReplicatedStorage")
@@ -63,20 +25,20 @@ local function SpawnBlock(name)
     end
 end
 
--- Создаем вкладки
+-- Вкладки
 local MainTab = Window:CreateTab("Blocks 🎁")
 local CombatTab = Window:CreateTab("Combat ⚔️")
 local PlayerTab = Window:CreateTab("Player ⚡")
 local SettingsTab = Window:CreateTab("Settings ⚙️")
 
--- [ BLOCKS SECTION ]
+-- Блоки
 local b1 = MainTab:CreateButton({Name = "Lucky Block 📦", Callback = function() SpawnBlock("Lucky") end})
 local b2 = MainTab:CreateButton({Name = "Super Block ⭐", Callback = function() SpawnBlock("Super") end})
 local b3 = MainTab:CreateButton({Name = "Diamond Block 💎", Callback = function() SpawnBlock("Diamond") end})
 local b4 = MainTab:CreateButton({Name = "Rainbow Block 🌈", Callback = function() SpawnBlock("Rainbow") end})
 local b5 = MainTab:CreateButton({Name = "Galaxy Block 🌠", Callback = function() SpawnBlock("Galaxy") end})
 
--- [ COMBAT SECTION ]
+-- Боёвка (Kill Aura)
 local c1 = CombatTab:CreateToggle({
    Name = "Kill Aura (Universal)",
    CurrentValue = false,
@@ -85,16 +47,23 @@ local c1 = CombatTab:CreateToggle({
        if Value then
            task.spawn(function()
                while _G.KillAuraActive do
-                   task.wait(0.1)
+                   task.wait(0.05)
                    local p = game.Players.LocalPlayer
-                   local tool = p.Character and p.Character:FindFirstChildOfClass("Tool")
+                   local char = p.Character
+                   local tool = char and char:FindFirstChildOfClass("Tool")
+                   
                    if tool and tool:FindFirstChild("Handle") then
+                       -- Активация меча
+                       tool:Activate()
                        for _, v in pairs(game.Players:GetPlayers()) do
                            if v ~= p and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
-                               local dist = (p.Character.HumanoidRootPart.Position - v.Character.HumanoidRootPart.Position).Magnitude
-                               if dist <= _G.KillAuraRange then
-                                   firetouchinterest(v.Character.Head, tool.Handle, 0)
-                                   firetouchinterest(v.Character.Head, tool.Handle, 1)
+                               local humanoid = v.Character:FindFirstChild("Humanoid")
+                               if humanoid and humanoid.Health > 0 then
+                                   local dist = (char.HumanoidRootPart.Position - v.Character.HumanoidRootPart.Position).Magnitude
+                                   if dist <= _G.KillAuraRange then
+                                       firetouchinterest(v.Character.Head, tool.Handle, 0)
+                                       firetouchinterest(v.Character.Head, tool.Handle, 1)
+                                   end
                                end
                            end
                        end
@@ -113,14 +82,14 @@ local c2 = CombatTab:CreateSlider({
    Callback = function(v) _G.KillAuraRange = v end,
 })
 
--- [ PLAYER SECTION ]
+-- Игрок
 local p1 = PlayerTab:CreateSlider({
    Name = "Walk Speed",
    Range = {16, 200},
    Increment = 1,
    CurrentValue = 16,
    Callback = function(v) 
-       if game.Players.LocalPlayer.Character then 
+       if game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") then 
            game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = v 
        end 
    end,
@@ -131,17 +100,18 @@ local p2 = PlayerTab:CreateToggle({
    CurrentValue = false,
    Callback = function(Value)
        _G.InfJump = Value
-       if Value then
-           game:GetService("UserInputService").JumpRequest:Connect(function()
-               if _G.InfJump and game.Players.LocalPlayer.Character then
-                   game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
-               end
-           end)
-       end
    end,
 })
 
--- Локализация
+-- Логика бесконечного прыжка (отдельно, чтобы не лагало)
+game:GetService("UserInputService").JumpRequest:Connect(function()
+    if _G.InfJump and game.Players.LocalPlayer.Character then
+        local hum = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if hum then hum:ChangeState("Jumping") end
+    end
+end)
+
+-- Смена языка
 local function ApplyLang(mode)
     if mode == "Русский" then
         b1:Set("Обычный блок 📦")
@@ -166,7 +136,6 @@ local function ApplyLang(mode)
     end
 end
 
--- Settings
 SettingsTab:CreateDropdown({
    Name = "Language / Язык",
    Options = {"English", "Русский"},
@@ -174,10 +143,10 @@ SettingsTab:CreateDropdown({
    Callback = function(Option) ApplyLang(Option[1]) end,
 })
 
--- Приветствие и старт
+-- Уведомление о запуске
 Rayfield:Notify({
-   Title = "Success!",
-   Content = "Script loaded. v2.0 Global Update applied.",
+   Title = "Iles_q Script Loaded",
+   Content = "v2.1 Fix Applied. Range 999 Ready!",
    Duration = 5,
    Image = 4483362458,
 })
