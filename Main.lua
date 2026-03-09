@@ -6,7 +6,7 @@ local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Window = Rayfield:CreateWindow({
    Name = "Lucky Block BattleGrounds 📦",
    LoadingTitle = "by Iles_q",
-   LoadingSubtitle = "Universal Edition",
+   LoadingSubtitle = "Loading",
    ConfigurationSaving = {Enabled = false},
    KeySystem = false 
 })
