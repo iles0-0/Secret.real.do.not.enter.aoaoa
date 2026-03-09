@@ -1,9 +1,12 @@
+-- Ожидание полной загрузки игры
+if not game:IsLoaded() then game.Loaded:Wait() end
+
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
    Name = "Lucky Block BattleGrounds 📦",
    LoadingTitle = "by Iles_q",
-   LoadingSubtitle = "Loading...",
+   LoadingSubtitle = "Universal Edition",
    ConfigurationSaving = {Enabled = false},
    KeySystem = false 
 })
@@ -25,13 +28,13 @@ local function SpawnBlock(name)
     end
 end
 
--- Вкладки
+-- Создаем вкладки
 local MainTab = Window:CreateTab("Blocks 🎁")
 local CombatTab = Window:CreateTab("Combat ⚔️")
 local PlayerTab = Window:CreateTab("Player ⚡")
 local SettingsTab = Window:CreateTab("Settings ⚙️")
 
--- Блоки
+-- Блоки (сохраняем в переменные для перевода)
 local b1 = MainTab:CreateButton({Name = "Lucky Block 📦", Callback = function() SpawnBlock("Lucky") end})
 local b2 = MainTab:CreateButton({Name = "Super Block ⭐", Callback = function() SpawnBlock("Super") end})
 local b3 = MainTab:CreateButton({Name = "Diamond Block 💎", Callback = function() SpawnBlock("Diamond") end})
@@ -53,7 +56,6 @@ local c1 = CombatTab:CreateToggle({
                    local tool = char and char:FindFirstChildOfClass("Tool")
                    
                    if tool and tool:FindFirstChild("Handle") then
-                       -- Активация меча
                        tool:Activate()
                        for _, v in pairs(game.Players:GetPlayers()) do
                            if v ~= p and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
@@ -103,7 +105,7 @@ local p2 = PlayerTab:CreateToggle({
    end,
 })
 
--- Логика бесконечного прыжка (отдельно, чтобы не лагало)
+-- Логика бесконечного прыжка
 game:GetService("UserInputService").JumpRequest:Connect(function()
     if _G.InfJump and game.Players.LocalPlayer.Character then
         local hum = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
@@ -111,7 +113,7 @@ game:GetService("UserInputService").JumpRequest:Connect(function()
     end
 end)
 
--- Смена языка
+-- Смена языка (исправленная логика)
 local function ApplyLang(mode)
     if mode == "Русский" then
         b1:Set("Обычный блок 📦")
@@ -140,13 +142,15 @@ SettingsTab:CreateDropdown({
    Name = "Language / Язык",
    Options = {"English", "Русский"},
    CurrentOption = {"English"},
-   Callback = function(Option) ApplyLang(Option[1]) end,
+   Callback = function(Option) 
+       ApplyLang(Option[1]) 
+   end,
 })
 
--- Уведомление о запуске
+-- Уведомление
 Rayfield:Notify({
-   Title = "Iles_q Script Loaded",
-   Content = "v2.1 Fix Applied. Range 999 Ready!",
+   Title = "Success!",
+   Content = "v2.1 Global Update loaded.",
    Duration = 5,
    Image = 4483362458,
 })
