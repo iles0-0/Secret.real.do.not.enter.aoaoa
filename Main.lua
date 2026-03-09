@@ -147,5 +147,5 @@ SettingsTab:CreateDropdown({
 })
 
 -- Старт
-Rayfield:Notify({Title = "Success!", Content = "v2.4 No-Dash Edition Loaded", Duration = 5})
+Rayfield:Notify({Title = "Success!", Content = "Thank you for using my script!", Duration = 5})
 ApplyLang("English")
