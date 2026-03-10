@@ -1,5 +1,4 @@
--- [[ Iles_q - Thx for using ]] --
--- Ожидание загрузки
+-- [[ Iles_q - Thx for using | v3.3 NO COOLDOWN EDITION ]] --
 if not game:IsLoaded() then game.Loaded:Wait() end
 
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
@@ -9,13 +8,14 @@ _G.KillAuraActive = false
 _G.KillAuraRange = 15
 _G.InfJump = false
 _G.WhitelistedFriends = false
+_G.RapidAbility = false -- Новая переменная
 local selectedPlayer = nil
 local loopKill = false
 
 local Window = Rayfield:CreateWindow({
-   Name = "Lucky Block BattleGrounds 📦 | v3.0",
+   Name = "Lucky Block BattleGrounds 📦 | v3.3",
    LoadingTitle = "by Iles_q",
-   LoadingSubtitle = "Loading...", -- Твой оригинальный Content
+   LoadingSubtitle = "Rapid Ability System Loaded", 
    ConfigurationSaving = {Enabled = false},
    KeySystem = false 
 })
@@ -129,6 +129,30 @@ local c1 = CombatTab:CreateToggle({
    end,
 })
 
+-- НОВАЯ ФУНКЦИЯ: Rapid Ability (No Cooldown)
+local c3 = CombatTab:CreateToggle({
+   Name = "No Cooldown (Rapid Ability)",
+   CurrentValue = false,
+   Callback = function(Value)
+       _G.RapidAbility = Value
+       task.spawn(function()
+           while _G.RapidAbility do
+               task.wait(0.01)
+               local p = game.Players.LocalPlayer
+               local tool = p.Character and p.Character:FindFirstChildOfClass("Tool")
+               if tool then
+                   tool:Activate()
+                   for _, v in pairs(tool:GetDescendants()) do
+                       if v:IsA("RemoteEvent") or v:IsA("BindableEvent") then
+                           v:FireServer()
+                       end
+                   end
+               end
+           end
+       end)
+   end,
+})
+
 CombatTab:CreateToggle({
    Name = "Whitelist Friends",
    CurrentValue = false,
@@ -179,6 +203,7 @@ local function ApplyLang(mode)
         b5:Set("Галактический блок 🌠")
         c1:Set("Килл Аура (Универсальная)")
         c2:Set("Радиус уничтожения")
+        c3:Set("Без кулдауна (Способности)")
         p1:Set("Скорость бега")
         p2:Set("Бесконечный прыжок")
     else
@@ -189,6 +214,7 @@ local function ApplyLang(mode)
         b5:Set("Galaxy Block 🌠")
         c1:Set("Kill Aura (Universal)")
         c2:Set("Destruction Range")
+        c3:Set("No Cooldown (Rapid Ability)")
         p1:Set("Walk Speed")
         p2:Set("Infinite Jump")
     end
@@ -201,6 +227,5 @@ SettingsTab:CreateDropdown({
    Callback = function(Option) ApplyLang(Option[1]) end,
 })
 
-Rayfield:Notify({Title = "Success!", Content = "Thank you for using my script", Duration = 5})
-ApplyLang("English") 
-Добавь пж, я сам не могу, нечего не вырезай
+Rayfield:Notify({Title = "Success!", Content = "Justice Hub v3.3 Loaded", Duration = 5})
+ApplyLang("English")
