@@ -1,5 +1,4 @@
--- [[ Iles_q - Thx for using ]] --
--- Please wait
+-- [[ Iles_q - Thx for using | FIXED & UPDATED ]] --
 if not game:IsLoaded() then game.Loaded:Wait() end
 
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
@@ -9,25 +8,27 @@ _G.KillAuraActive = false
 _G.KillAuraRange = 15
 _G.InfJump = false
 _G.WhitelistedFriends = false
+_G.RapidAbility = false
 local selectedPlayer = nil
 local loopKill = false
 
 local Window = Rayfield:CreateWindow({
-   Name = "Lucky Block BattleGrounds 📦 | v1.0",
+   Name = "Lucky Block BattleGrounds 📦 | v3.5",
    LoadingTitle = "by Iles_q",
-   LoadingSubtitle = "Loading...", -- Твой оригинальный Content
+   LoadingSubtitle = "Fixing Game Updates...", 
    ConfigurationSaving = {Enabled = false},
    KeySystem = false 
 })
 
 local function SpawnBlock(name)
     local rs = game:GetService("ReplicatedStorage")
-    local events = {"Spawn" .. name .. "Block", "Spawn" .. name, "SpawnBlock"}
-    for _, e in pairs(events) do
-        local r = rs:FindFirstChild(e)
-        if r then
-            if r.Name == "SpawnBlock" then r:FireServer(name) else r:FireServer() end
-            break
+    -- Пробуем разные варианты путей, которые могли измениться
+    local remote = rs:FindFirstChild("Spawn" .. name .. "Block") or rs:FindFirstChild("Spawn" .. name) or rs:FindFirstChild("SpawnBlock")
+    if remote then
+        if remote.Name == "SpawnBlock" then
+            remote:FireServer(name)
+        else
+            remote:FireServer()
         end
     end
 end
@@ -61,7 +62,7 @@ local TargetDropdown = TargetTab:CreateDropdown({
    CurrentOption = "",
    MultipleOptions = false,
    Callback = function(Option)
-      selectedPlayer = game.Players:FindFirstChild(Option[1])
+      selectedPlayer = game.Players:FindFirstChild(type(Option) == "table" and Option[1] or Option)
    end,
 })
 
@@ -78,11 +79,12 @@ TargetTab:CreateToggle({
        task.spawn(function()
            while loopKill do
                task.wait(0.01)
-               if selectedPlayer and selectedPlayer.Character and selectedPlayer.Character:FindFirstChild("Head") then
+               if selectedPlayer and selectedPlayer.Character then
+                   local targetPart = selectedPlayer.Character:FindFirstChild("Head") or selectedPlayer.Character:FindFirstChild("HumanoidRootPart")
                    local tool = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
-                   if tool and tool:FindFirstChild("Handle") then
-                       firetouchinterest(selectedPlayer.Character.Head, tool.Handle, 0)
-                       firetouchinterest(selectedPlayer.Character.Head, tool.Handle, 1)
+                   if targetPart and tool and tool:FindFirstChild("Handle") then
+                       firetouchinterest(targetPart, tool.Handle, 0)
+                       firetouchinterest(targetPart, tool.Handle, 1)
                    end
                end
            end
@@ -93,7 +95,7 @@ TargetTab:CreateToggle({
 TargetTab:CreateButton({
    Name = "Teleport to Target",
    Callback = function()
-       if selectedPlayer and selectedPlayer.Character then
+       if selectedPlayer and selectedPlayer.Character and selectedPlayer.Character:FindFirstChild("HumanoidRootPart") then
            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = selectedPlayer.Character.HumanoidRootPart.CFrame
        end
    end,
@@ -108,17 +110,21 @@ local c1 = CombatTab:CreateToggle({
        if Value then
            task.spawn(function()
                while _G.KillAuraActive do
-                   task.wait(0.03)
-                   local p = game.Players.LocalPlayer
-                   local tool = p.Character and p.Character:FindFirstChildOfClass("Tool")
+                   task.wait(0.05)
+                   local lp = game.Players.LocalPlayer
+                   local char = lp.Character
+                   local tool = char and char:FindFirstChildOfClass("Tool")
+                   
                    if tool and tool:FindFirstChild("Handle") then
                        for _, v in pairs(game.Players:GetPlayers()) do
-                           if v ~= p and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
-                               if _G.WhitelistedFriends and p:IsFriendsWith(v.UserId) then continue end
-                               local dist = (p.Character.HumanoidRootPart.Position - v.Character.HumanoidRootPart.Position).Magnitude
+                           if v ~= lp and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                               if _G.WhitelistedFriends and lp:IsFriendsWith(v.UserId) then continue end
+                               
+                               local dist = (char.HumanoidRootPart.Position - v.Character.HumanoidRootPart.Position).Magnitude
                                if dist <= _G.KillAuraRange then
-                                   firetouchinterest(v.Character.Head, tool.Handle, 0)
-                                   firetouchinterest(v.Character.Head, tool.Handle, 1)
+                                   local hitPart = v.Character:FindFirstChild("Head") or v.Character.HumanoidRootPart
+                                   firetouchinterest(hitPart, tool.Handle, 0)
+                                   firetouchinterest(hitPart, tool.Handle, 1)
                                end
                            end
                        end
@@ -126,6 +132,26 @@ local c1 = CombatTab:CreateToggle({
                end
            end)
        end
+   end,
+})
+
+-- Тот самый NO COOLDOWN, который мы обсуждали
+local c3 = CombatTab:CreateToggle({
+   Name = "No Cooldown Abilities",
+   CurrentValue = false,
+   Callback = function(Value)
+       _G.RapidAbility = Value
+       task.spawn(function()
+           while _G.RapidAbility do
+               task.wait()
+               local tool = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
+               if tool then
+                   for _, v in pairs(tool:GetDescendants()) do
+                       if v:IsA("RemoteEvent") then v:FireServer() end
+                   end
+               end
+           end
+       end)
    end,
 })
 
@@ -146,7 +172,7 @@ local c2 = CombatTab:CreateSlider({
 -- [ PLAYER ]
 local p1 = PlayerTab:CreateSlider({
    Name = "Walk Speed",
-   Range = {16, 200},
+   Range = {16, 250},
    Increment = 1,
    CurrentValue = 16,
    Callback = function(v) 
@@ -179,6 +205,7 @@ local function ApplyLang(mode)
         b5:Set("Галактический блок 🌠")
         c1:Set("Килл Аура (Универсальная)")
         c2:Set("Радиус уничтожения")
+        c3:Set("Без КД на способности")
         p1:Set("Скорость бега")
         p2:Set("Бесконечный прыжок")
     else
@@ -189,6 +216,7 @@ local function ApplyLang(mode)
         b5:Set("Galaxy Block 🌠")
         c1:Set("Kill Aura (Universal)")
         c2:Set("Destruction Range")
+        c3:Set("No Cooldown Abilities")
         p1:Set("Walk Speed")
         p2:Set("Infinite Jump")
     end
@@ -201,6 +229,5 @@ SettingsTab:CreateDropdown({
    Callback = function(Option) ApplyLang(Option[1]) end,
 })
 
-Rayfield:Notify({Title = "Success!", Content = "Thank you for using my script", Duration = 5})
+Rayfield:Notify({Title = "V3.5 Reloaded", Content = "Script Fixed for New Updates!", Duration = 5})
 ApplyLang("English") 
-Добавь сам, не вырезай нечгео
