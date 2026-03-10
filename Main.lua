@@ -130,25 +130,7 @@ local c1 = CombatTab:CreateToggle({
    end,
 })
 
--- Функция No Cooldown (без лишнего текста)
-local c3 = CombatTab:CreateToggle({
-   Name = "No Cooldown Abilities",
-   CurrentValue = false,
-   Callback = function(Value)
-       _G.RapidAbility = Value
-       task.spawn(function()
-           while _G.RapidAbility do
-               task.wait()
-               local tool = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
-               if tool then
-                   for _, v in pairs(tool:GetDescendants()) do
-                       if v:IsA("RemoteEvent") then v:FireServer() end
-                   end
-               end
-           end
-       end)
-   end,
-})
+
 
 CombatTab:CreateToggle({
    Name = "Whitelist Friends",
