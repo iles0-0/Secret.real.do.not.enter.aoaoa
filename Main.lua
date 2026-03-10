@@ -42,7 +42,8 @@ local b4 = MainTab:CreateButton({Name = "Rainbow Block 🌈", Callback = functio
 local b5 = MainTab:CreateButton({Name = "Galaxy Block 🌠", Callback = function() SpawnBlock("Galaxy") end})
 
 -- [ COMBAT - NO DASH VERSION ]
-local c1 = CombatTab:CreateToggle({
+-- Кнопка самой Килл Ауры
+CombatTab:CreateToggle({
    Name = "Kill Aura (Universal)",
    CurrentValue = false,
    Callback = function(Value)
@@ -50,26 +51,24 @@ local c1 = CombatTab:CreateToggle({
        if Value then
            task.spawn(function()
                while _G.KillAuraActive do
-                   task.wait(0.03) -- Максимальная скорость
+                   task.wait(0.03)
                    local p = game.Players.LocalPlayer
                    local char = p.Character
                    local tool = char and char:FindFirstChildOfClass("Tool")
                    
-                   -- Проверяем наличие меча, но НЕ активируем его через Activate()
                    if tool and tool:FindFirstChild("Handle") then
                        for _, v in pairs(game.Players:GetPlayers()) do
+                           -- Проверяем: не я, жив, персонаж на месте
                            if v ~= p and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
-                               local hum = v.Character:FindFirstChild("Humanoid")
-                               if hum and hum.Health > 0 then
-                                   local dist = (char.HumanoidRootPart.Position - v.Character.HumanoidRootPart.Position).Magnitude
-                                   if dist <= _G.KillAuraRange then
-                                       -- Наносим урон напрямую через касание хитбоксов
-                                       -- Бьем по голове и по телу для 100% срабатывания
-                                       firetouchinterest(v.Character.Head, tool.Handle, 0)
-                                       firetouchinterest(v.Character.Head, tool.Handle, 1)
-                                       firetouchinterest(v.Character.HumanoidRootPart, tool.Handle, 0)
-                                       firetouchinterest(v.Character.HumanoidRootPart, tool.Handle, 1)
-                                   end
+                               -- ЛОГИКА ВАЙТЛИСТА
+                               if _G.WhitelistedFriends and p:IsFriendsWith(v.UserId) then
+                                   continue -- Пропускаем друга, не бьем его
+                               end
+
+                               local dist = (char.HumanoidRootPart.Position - v.Character.HumanoidRootPart.Position).Magnitude
+                               if dist <= (_G.KillAuraRange or 999) then
+                                   firetouchinterest(v.Character.Head, tool.Handle, 0)
+                                   firetouchinterest(v.Character.Head, tool.Handle, 1)
                                end
                            end
                        end
@@ -79,6 +78,21 @@ local c1 = CombatTab:CreateToggle({
        end
    end,
 })
+
+-- НОВАЯ КНОПКА (Вайтлист) - ставь её СРАЗУ ПОСЛЕ кнопки Килл Ауры
+CombatTab:CreateToggle({
+   Name = "Whitelist Friends",
+   CurrentValue = false,
+   Callback = function(Value)
+       _G.WhitelistedFriends = Value
+       Rayfield:Notify({
+          Title = "Whitelist",
+          Content = Value and "Friends are now safe!" or "Friends are now targets!",
+          Duration = 3
+       })
+   end,
+})
+
 
 local c2 = CombatTab:CreateSlider({
    Name = "Destruction Range",
