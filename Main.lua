@@ -93,6 +93,45 @@ CombatTab:CreateToggle({
    end,
 })
 
+-- [ Находишь свою вкладку Combat ]
+local CombatTab = Window:CreateTab("Combat ⚔️", 4483362458)
+
+-- ... тут твоя кнопка Килл Ауры ...
+
+-- И СРАЗУ ПОД НЕЙ ВСТАВЛЯЕШЬ ЭТО:
+CombatTab:CreateToggle({
+   Name = "Auto Equip (Meta only)",
+   CurrentValue = false,
+   Callback = function(Value)
+       _G.AutoMetaEquip = Value
+       if Value then
+           task.spawn(function()
+               while _G.AutoMetaEquip do
+                   task.wait(0.5)
+                   local p = game.Players.LocalPlayer
+                   local bp = p:FindFirstChild("Backpack")
+                   local char = p.Character
+                   
+                   if char and bp then
+                       for _, tool in pairs(bp:GetChildren()) do
+                           if tool:IsA("Tool") then
+                               local name = tool.Name:lower()
+                               -- Список того, что хватаем в руки
+                               local keys = {"pegas", "carpet", "stove", "satan", "demon", "galaxy", "dark", "illum", "ghost", "rainbow"}
+                               for _, key in pairs(keys) do
+                                   if name:find(key) then
+                                       tool.Parent = char
+                                   end
+                               end
+                           end
+                       end
+                   end
+               end
+           end)
+       end
+   end,
+})
+
 
 local c2 = CombatTab:CreateSlider({
    Name = "Destruction Range",
