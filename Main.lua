@@ -1,25 +1,26 @@
--- [[ Iles_q - Thx for using | v3.3 NO COOLDOWN EDITION ]] --
+-- [[ Iles_q - Thx for using | v3.5 ]] --
 if not game:IsLoaded() then game.Loaded:Wait() end
 
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 -- Глобальные переменные
 _G.KillAuraActive = false
-_G.KillAuraRange = 15
+_G.KillAuraRange = 20
 _G.InfJump = false
 _G.WhitelistedFriends = false
-_G.RapidAbility = false -- Новая переменная
+_G.RapidAbility = false
 local selectedPlayer = nil
 local loopKill = false
 
 local Window = Rayfield:CreateWindow({
-   Name = "Lucky Block BattleGrounds 📦 | v3.3",
+   Name = "Lucky Block BattleGrounds 📦 | v3.5",
    LoadingTitle = "by Iles_q",
-   LoadingSubtitle = "Rapid Ability System Loaded", 
+   LoadingSubtitle = "Loading...", 
    ConfigurationSaving = {Enabled = false},
    KeySystem = false 
 })
 
+-- Функция спавна блоков
 local function SpawnBlock(name)
     local rs = game:GetService("ReplicatedStorage")
     local events = {"Spawn" .. name .. "Block", "Spawn" .. name, "SpawnBlock"}
@@ -40,11 +41,11 @@ local PlayerTab = Window:CreateTab("Player ⚡")
 local SettingsTab = Window:CreateTab("Settings ⚙️")
 
 -- [ BLOCKS ]
-local b1 = MainTab:CreateButton({Name = "Lucky Block 📦", Callback = function() SpawnBlock("Lucky") end})
-local b2 = MainTab:CreateButton({Name = "Super Block ⭐", Callback = function() SpawnBlock("Super") end})
-local b3 = MainTab:CreateButton({Name = "Diamond Block 💎", Callback = function() SpawnBlock("Diamond") end})
-local b4 = MainTab:CreateButton({Name = "Rainbow Block 🌈", Callback = function() SpawnBlock("Rainbow") end})
-local b5 = MainTab:CreateButton({Name = "Galaxy Block 🌠", Callback = function() SpawnBlock("Galaxy") end})
+MainTab:CreateButton({Name = "Lucky Block 📦", Callback = function() SpawnBlock("Lucky") end})
+MainTab:CreateButton({Name = "Super Block ⭐", Callback = function() SpawnBlock("Super") end})
+MainTab:CreateButton({Name = "Diamond Block 💎", Callback = function() SpawnBlock("Diamond") end})
+MainTab:CreateButton({Name = "Rainbow Block 🌈", Callback = function() SpawnBlock("Rainbow") end})
+MainTab:CreateButton({Name = "Galaxy Block 🌠", Callback = function() SpawnBlock("Galaxy") end})
 
 -- [ TARGET SYSTEM ]
 local function getPlayerNames()
@@ -65,10 +66,7 @@ local TargetDropdown = TargetTab:CreateDropdown({
    end,
 })
 
-TargetTab:CreateButton({
-   Name = "Refresh List",
-   Callback = function() TargetDropdown:Refresh(getPlayerNames()) end,
-})
+TargetTab:CreateButton({Name = "Refresh List", Callback = function() TargetDropdown:Refresh(getPlayerNames()) end})
 
 TargetTab:CreateToggle({
    Name = "Target Kill (Need Weapon)",
@@ -77,7 +75,7 @@ TargetTab:CreateToggle({
        loopKill = Value
        task.spawn(function()
            while loopKill do
-               task.wait(0.01)
+               task.wait()
                if selectedPlayer and selectedPlayer.Character and selectedPlayer.Character:FindFirstChild("Head") then
                    local tool = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
                    if tool and tool:FindFirstChild("Handle") then
@@ -90,17 +88,8 @@ TargetTab:CreateToggle({
    end,
 })
 
-TargetTab:CreateButton({
-   Name = "Teleport to Target",
-   Callback = function()
-       if selectedPlayer and selectedPlayer.Character then
-           game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = selectedPlayer.Character.HumanoidRootPart.CFrame
-       end
-   end,
-})
-
 -- [ COMBAT ]
-local c1 = CombatTab:CreateToggle({
+CombatTab:CreateToggle({
    Name = "Kill Aura",
    CurrentValue = false,
    Callback = function(Value)
@@ -108,7 +97,7 @@ local c1 = CombatTab:CreateToggle({
        if Value then
            task.spawn(function()
                while _G.KillAuraActive do
-                   task.wait(0.03)
+                   task.wait()
                    local p = game.Players.LocalPlayer
                    local tool = p.Character and p.Character:FindFirstChildOfClass("Tool")
                    if tool and tool:FindFirstChild("Handle") then
@@ -129,21 +118,19 @@ local c1 = CombatTab:CreateToggle({
    end,
 })
 
--- НОВАЯ ФУНКЦИЯ: Rapid Ability (No Cooldown)
-local c3 = CombatTab:CreateToggle({
-   Name = "No Cooldown (Rapid Ability)",
+-- УЛЬТРА NO COOLDOWN (БЕЗ ЛИМИТОВ)
+CombatTab:CreateToggle({
+   Name = "ULTRA No Cooldown Abilities ⚠️",
    CurrentValue = false,
    Callback = function(Value)
        _G.RapidAbility = Value
        task.spawn(function()
            while _G.RapidAbility do
-               task.wait(0.01)
-               local p = game.Players.LocalPlayer
-               local tool = p.Character and p.Character:FindFirstChildOfClass("Tool")
+               task.wait() -- Скорость света для мобилок
+               local tool = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
                if tool then
-                   tool:Activate()
                    for _, v in pairs(tool:GetDescendants()) do
-                       if v:IsA("RemoteEvent") or v:IsA("BindableEvent") then
+                       if v:IsA("RemoteEvent") then
                            v:FireServer()
                        end
                    end
@@ -153,24 +140,10 @@ local c3 = CombatTab:CreateToggle({
    end,
 })
 
-CombatTab:CreateToggle({
-   Name = "Whitelist Friends",
-   CurrentValue = false,
-   Callback = function(Value) _G.WhitelistedFriends = Value end,
-})
-
-local c2 = CombatTab:CreateSlider({
-   Name = "Destruction Range",
-   Range = {15, 999},
-   Increment = 5,
-   CurrentValue = 15,
-   Callback = function(v) _G.KillAuraRange = v end,
-})
-
 -- [ PLAYER ]
-local p1 = PlayerTab:CreateSlider({
-   Name = "Walk Speed",
-   Range = {16, 200},
+PlayerTab:CreateSlider({
+   Name = "Speed",
+   Range = {16, 300},
    Increment = 1,
    CurrentValue = 16,
    Callback = function(v) 
@@ -180,8 +153,8 @@ local p1 = PlayerTab:CreateSlider({
    end,
 })
 
-local p2 = PlayerTab:CreateToggle({
-   Name = "Infinite Jump",
+PlayerTab:CreateToggle({
+   Name = "Inf Jump",
    CurrentValue = false,
    Callback = function(Value) _G.InfJump = Value end,
 })
@@ -193,39 +166,4 @@ game:GetService("UserInputService").JumpRequest:Connect(function()
     end
 end)
 
--- [ SETTINGS & LANG ]
-local function ApplyLang(mode)
-    if mode == "Русский" then
-        b1:Set("Обычный блок 📦")
-        b2:Set("Супер блок ⭐")
-        b3:Set("Алмазный блок 💎")
-        b4:Set("Радужный блок 🌈")
-        b5:Set("Галактический блок 🌠")
-        c1:Set("Килл Аура (Универсальная)")
-        c2:Set("Радиус уничтожения")
-        c3:Set("Без кулдауна (Способности)")
-        p1:Set("Скорость бега")
-        p2:Set("Бесконечный прыжок")
-    else
-        b1:Set("Lucky Block 📦")
-        b2:Set("Super Block ⭐")
-        b3:Set("Diamond Block 💎")
-        b4:Set("Rainbow Block 🌈")
-        b5:Set("Galaxy Block 🌠")
-        c1:Set("Kill Aura (Universal)")
-        c2:Set("Destruction Range")
-        c3:Set("No Cooldown (Rapid Ability)")
-        p1:Set("Walk Speed")
-        p2:Set("Infinite Jump")
-    end
-end
-
-SettingsTab:CreateDropdown({
-   Name = "Language / Язык",
-   Options = {"English", "Русский"},
-   CurrentOption = {"English"},
-   Callback = function(Option) ApplyLang(Option[1]) end,
-})
-
-Rayfield:Notify({Title = "Success!", Content = "Justice Hub v3.3 Loaded", Duration = 5})
-ApplyLang("English")
+Rayfield:Notify({Title = "READY FOR CHAOS", Content = "Iles_q Hub v3.5 is running at MAX speed", Duration = 5})
