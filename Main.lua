@@ -44,7 +44,7 @@ local b5 = MainTab:CreateButton({Name = "Galaxy Block 🌠", Callback = function
 
 -- [ COMBAT ]
 local c1 = CombatTab:CreateToggle({
-   Name = "Kill Aura (Universal)",
+   Name = "Kill Aura",
    CurrentValue = false,
    Callback = function(Value)
        _G.KillAuraActive = Value
