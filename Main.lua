@@ -1,4 +1,5 @@
--- [[ Iles_q - Thx for using | v3.2 JUSTICE ]] --
+-- [[ Iles_q - Thx for using ]] --
+-- Ожидание загрузки
 if not game:IsLoaded() then game.Loaded:Wait() end
 
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
@@ -8,15 +9,13 @@ _G.KillAuraActive = false
 _G.KillAuraRange = 15
 _G.InfJump = false
 _G.WhitelistedFriends = false
-_G.AntiFlingActive = false
-local selectedTargets = {} 
-local multiLoopKill = false
-local flingActive = false
+local selectedPlayer = nil
+local loopKill = false
 
 local Window = Rayfield:CreateWindow({
-   Name = "Lucky Block BattleGrounds 📦 | v3.2",
+   Name = "Lucky Block BattleGrounds 📦 | v3.0",
    LoadingTitle = "by Iles_q",
-   LoadingSubtitle = "Justice & Protection Active",
+   LoadingSubtitle = "Loading...", -- Твой оригинальный Content
    ConfigurationSaving = {Enabled = false},
    KeySystem = false 
 })
@@ -37,7 +36,6 @@ end
 local MainTab = Window:CreateTab("Blocks 🎁")
 local CombatTab = Window:CreateTab("Combat ⚔️")
 local TargetTab = Window:CreateTab("Target 🎯") 
-local AntiFlingTab = Window:CreateTab("Anti-Fling 🛡️")
 local PlayerTab = Window:CreateTab("Player ⚡")
 local SettingsTab = Window:CreateTab("Settings ⚙️")
 
@@ -58,12 +56,12 @@ local function getPlayerNames()
 end
 
 local TargetDropdown = TargetTab:CreateDropdown({
-   Name = "Select Targets",
+   Name = "Select Target",
    Options = getPlayerNames(),
-   CurrentOption = {},
-   MultipleOptions = true,
-   Callback = function(Options)
-      selectedTargets = Options
+   CurrentOption = "",
+   MultipleOptions = false,
+   Callback = function(Option)
+      selectedPlayer = game.Players:FindFirstChild(Option[1])
    end,
 })
 
@@ -72,22 +70,19 @@ TargetTab:CreateButton({
    Callback = function() TargetDropdown:Refresh(getPlayerNames()) end,
 })
 
-local t1 = TargetTab:CreateToggle({
-   Name = "Mass Kill (Need Weapon)",
+TargetTab:CreateToggle({
+   Name = "Target Kill (Need Weapon)",
    CurrentValue = false,
    Callback = function(Value)
-       multiLoopKill = Value
+       loopKill = Value
        task.spawn(function()
-           while multiLoopKill do
+           while loopKill do
                task.wait(0.01)
-               local tool = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
-               if tool and tool:FindFirstChild("Handle") then
-                   for _, name in pairs(selectedTargets) do
-                       local target = game.Players:FindFirstChild(name)
-                       if target and target.Character and target.Character:FindFirstChild("Head") then
-                           firetouchinterest(target.Character.Head, tool.Handle, 0)
-                           firetouchinterest(target.Character.Head, tool.Handle, 1)
-                       end
+               if selectedPlayer and selectedPlayer.Character and selectedPlayer.Character:FindFirstChild("Head") then
+                   local tool = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
+                   if tool and tool:FindFirstChild("Handle") then
+                       firetouchinterest(selectedPlayer.Character.Head, tool.Handle, 0)
+                       firetouchinterest(selectedPlayer.Character.Head, tool.Handle, 1)
                    end
                end
            end
@@ -95,70 +90,11 @@ local t1 = TargetTab:CreateToggle({
    end,
 })
 
-local t2 = TargetTab:CreateToggle({
-   Name = "Target Fling (Launch)",
-   CurrentValue = false,
-   Callback = function(Value)
-       flingActive = Value
-       if flingActive then
-           task.spawn(function()
-               while flingActive do
-                   task.wait()
-                   local lp = game.Players.LocalPlayer
-                   if #selectedTargets > 0 then
-                       for _, name in pairs(selectedTargets) do
-                           local target = game.Players:FindFirstChild(name)
-                           if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") and lp.Character and lp.Character:FindFirstChild("HumanoidRootPart") then
-                               local hrp = lp.Character.HumanoidRootPart
-                               local targetHrp = target.Character.HumanoidRootPart
-                               local oldCFrame = hrp.CFrame
-                               hrp.Velocity = Vector3.new(500000, 500000, 500000)
-                               hrp.CFrame = targetHrp.CFrame
-                               task.wait(0.1)
-                               hrp.CFrame = oldCFrame
-                           end
-                       end
-                   end
-               end
-           end)
-       end
-   end,
-})
-
 TargetTab:CreateButton({
-   Name = "Teleport to First Target",
+   Name = "Teleport to Target",
    Callback = function()
-       if #selectedTargets > 0 then
-           local target = game.Players:FindFirstChild(selectedTargets[1])
-           if target and target.Character then
-               game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame
-           end
-       end
-   end,
-})
-
--- [ ANTI-FLING ]
-local af1 = AntiFlingTab:CreateToggle({
-   Name = "Enable Anti-Fling Protection",
-   CurrentValue = false,
-   Callback = function(Value)
-       _G.AntiFlingActive = Value
-       if Value then
-           task.spawn(function()
-               game:GetService("RunService").Stepped:Connect(function()
-                   if _G.AntiFlingActive and game.Players.LocalPlayer.Character then
-                       pcall(function()
-                           for _, v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
-                               if v:IsA("BasePart") then
-                                   v.CanCollide = false
-                                   v.Velocity = Vector3.new(0, 0, 0)
-                                   v.RotVelocity = Vector3.new(0, 0, 0)
-                               end
-                           end
-                       end)
-                   end
-               end)
-           end)
+       if selectedPlayer and selectedPlayer.Character then
+           game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = selectedPlayer.Character.HumanoidRootPart.CFrame
        end
    end,
 })
@@ -245,9 +181,6 @@ local function ApplyLang(mode)
         c2:Set("Радиус уничтожения")
         p1:Set("Скорость бега")
         p2:Set("Бесконечный прыжок")
-        t1:Set("Масс Килл (Нужно оружие)")
-        t2:Set("Флинг (Запуск в небо)")
-        af1:Set("Активировать Анти-Флинг")
     else
         b1:Set("Lucky Block 📦")
         b2:Set("Super Block ⭐")
@@ -258,9 +191,6 @@ local function ApplyLang(mode)
         c2:Set("Destruction Range")
         p1:Set("Walk Speed")
         p2:Set("Infinite Jump")
-        t1:Set("Mass Kill (Need Weapon)")
-        t2:Set("Target Fling (Launch)")
-        af1:Set("Enable Anti-Fling Protection")
     end
 end
 
@@ -271,5 +201,6 @@ SettingsTab:CreateDropdown({
    Callback = function(Option) ApplyLang(Option[1]) end,
 })
 
-Rayfield:Notify({Title = "Success!", Content = "Iles_q Hub v3.2 Loaded", Duration = 5})
+Rayfield:Notify({Title = "Success!", Content = "Thank you for using my script", Duration = 5})
 ApplyLang("English") 
+Добавь пж, я сам не могу, нечего не вырезай
