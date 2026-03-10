@@ -1,6 +1,22 @@
--- [[ Iles_q Hub v3.0 - JUSTICE EDITION ]] --
--- Ожидание загрузки
+-- [[ Iles_q Hub v3.1 - JUSTICE & ANTI-FLING EDITION ]] --
 if not game:IsLoaded() then game.Loaded:Wait() end
+
+-- [ АНТИ-ФЛИНГ ЗАЩИТА ] - Включается сразу
+task.spawn(function()
+    game:GetService("RunService").Stepped:Connect(function()
+        pcall(function()
+            if game.Players.LocalPlayer.Character then
+                for _, v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+                    if v:IsA("BasePart") then
+                        v.CanCollide = false
+                        v.Velocity = Vector3.new(0, 0, 0)
+                        v.RotVelocity = Vector3.new(0, 0, 0)
+                    end
+                end
+            end
+        end)
+    end)
+end)
 
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
@@ -9,13 +25,13 @@ _G.KillAuraActive = false
 _G.KillAuraRange = 15
 _G.InfJump = false
 _G.WhitelistedFriends = false
-local selectedPlayer = nil
-local loopKill = false
+local selectedTargets = {} -- Таблица для мульти-целей
+local multiLoopKill = false
 
 local Window = Rayfield:CreateWindow({
-   Name = "Lucky Block BattleGrounds 📦 | v3.0",
+   Name = "Lucky Block BattleGrounds 📦 | v3.1",
    LoadingTitle = "by Iles_q",
-   LoadingSubtitle = "Loading...", -- Твой оригинальный Content
+   LoadingSubtitle = "Anti-P2W System Active",
    ConfigurationSaving = {Enabled = false},
    KeySystem = false 
 })
@@ -46,7 +62,7 @@ local b3 = MainTab:CreateButton({Name = "Diamond Block 💎", Callback = functio
 local b4 = MainTab:CreateButton({Name = "Rainbow Block 🌈", Callback = function() SpawnBlock("Rainbow") end})
 local b5 = MainTab:CreateButton({Name = "Galaxy Block 🌠", Callback = function() SpawnBlock("Galaxy") end})
 
--- [ TARGET SYSTEM ]
+-- [ TARGET SYSTEM - UPGRADED ]
 local function getPlayerNames()
     local names = {}
     for _, v in pairs(game.Players:GetPlayers()) do
@@ -55,34 +71,37 @@ local function getPlayerNames()
     return names
 end
 
-local TargetDropdown = TargetTab:CreateDropdown({
-   Name = "Select Target",
+local MultiDropdown = TargetTab:CreateDropdown({
+   Name = "Select Targets (Multi-Select)",
    Options = getPlayerNames(),
-   CurrentOption = "",
-   MultipleOptions = false,
-   Callback = function(Option)
-      selectedPlayer = game.Players:FindFirstChild(Option[1])
+   CurrentOption = {},
+   MultipleOptions = true,
+   Callback = function(Options)
+      selectedTargets = Options
    end,
 })
 
 TargetTab:CreateButton({
    Name = "Refresh List",
-   Callback = function() TargetDropdown:Refresh(getPlayerNames()) end,
+   Callback = function() MultiDropdown:Refresh(getPlayerNames()) end,
 })
 
 TargetTab:CreateToggle({
-   Name = "Target Kill (Need Weapon)",
+   Name = "Mass Kill (Anti-Team/P2W)",
    CurrentValue = false,
    Callback = function(Value)
-       loopKill = Value
+       multiLoopKill = Value
        task.spawn(function()
-           while loopKill do
+           while multiLoopKill do
                task.wait(0.01)
-               if selectedPlayer and selectedPlayer.Character and selectedPlayer.Character:FindFirstChild("Head") then
-                   local tool = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
-                   if tool and tool:FindFirstChild("Handle") then
-                       firetouchinterest(selectedPlayer.Character.Head, tool.Handle, 0)
-                       firetouchinterest(selectedPlayer.Character.Head, tool.Handle, 1)
+               local tool = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
+               if tool and tool:FindFirstChild("Handle") then
+                   for _, name in pairs(selectedTargets) do
+                       local target = game.Players:FindFirstChild(name)
+                       if target and target.Character and target.Character:FindFirstChild("Head") then
+                           firetouchinterest(target.Character.Head, tool.Handle, 0)
+                           firetouchinterest(target.Character.Head, tool.Handle, 1)
+                       end
                    end
                end
            end
@@ -91,10 +110,13 @@ TargetTab:CreateToggle({
 })
 
 TargetTab:CreateButton({
-   Name = "Teleport to Target",
+   Name = "Teleport to First Target",
    Callback = function()
-       if selectedPlayer and selectedPlayer.Character then
-           game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = selectedPlayer.Character.HumanoidRootPart.CFrame
+       if #selectedTargets > 0 then
+           local target = game.Players:FindFirstChild(selectedTargets[1])
+           if target and target.Character then
+               game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame
+           end
        end
    end,
 })
@@ -201,5 +223,5 @@ SettingsTab:CreateDropdown({
    Callback = function(Option) ApplyLang(Option[1]) end,
 })
 
-Rayfield:Notify({Title = "Success!", Content = "Thank you for using my script", Duration = 5})
+Rayfield:Notify({Title = "Success!", Content = "Justice System v3.1 Loaded. Anti-Fling Active.", Duration = 5})
 ApplyLang("English")
