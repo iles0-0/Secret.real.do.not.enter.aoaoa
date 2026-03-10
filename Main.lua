@@ -13,7 +13,7 @@ local selectedPlayer = nil
 local loopKill = false
 
 local Window = Rayfield:CreateWindow({
-   Name = "Lucky Block BattleGrounds 📦 | v3.0",
+   Name = "Lucky Block BattleGrounds 📦 | v1.0",
    LoadingTitle = "by Iles_q",
    LoadingSubtitle = "Loading...", -- Твой оригинальный Content
    ConfigurationSaving = {Enabled = false},
