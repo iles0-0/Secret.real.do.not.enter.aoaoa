@@ -1,4 +1,4 @@
--- [[ Iles_q Hub v3.0 - JUSTICE EDITION ]] --
+-- [[ Iles_q - Thx for using ]] --
 -- Ожидание загрузки
 if not game:IsLoaded() then game.Loaded:Wait() end
 
