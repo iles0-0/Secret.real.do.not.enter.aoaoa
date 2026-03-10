@@ -1,3 +1,4 @@
+-- [[ Iles_q Hub v3.0 - JUSTICE EDITION ]] --
 -- Ожидание загрузки
 if not game:IsLoaded() then game.Loaded:Wait() end
 
@@ -8,11 +9,13 @@ _G.KillAuraActive = false
 _G.KillAuraRange = 15
 _G.InfJump = false
 _G.WhitelistedFriends = false
+local selectedPlayer = nil
+local loopKill = false
 
 local Window = Rayfield:CreateWindow({
-   Name = "Lucky Block BattleGrounds 📦 | v2.5",
+   Name = "Lucky Block BattleGrounds 📦 | v3.0",
    LoadingTitle = "by Iles_q",
-   LoadingSubtitle = "Loading...",
+   LoadingSubtitle = "Loading...", -- Твой оригинальный Content
    ConfigurationSaving = {Enabled = false},
    KeySystem = false 
 })
@@ -32,6 +35,7 @@ end
 -- Вкладки
 local MainTab = Window:CreateTab("Blocks 🎁")
 local CombatTab = Window:CreateTab("Combat ⚔️")
+local TargetTab = Window:CreateTab("Target 🎯") 
 local PlayerTab = Window:CreateTab("Player ⚡")
 local SettingsTab = Window:CreateTab("Settings ⚙️")
 
@@ -41,6 +45,59 @@ local b2 = MainTab:CreateButton({Name = "Super Block ⭐", Callback = function()
 local b3 = MainTab:CreateButton({Name = "Diamond Block 💎", Callback = function() SpawnBlock("Diamond") end})
 local b4 = MainTab:CreateButton({Name = "Rainbow Block 🌈", Callback = function() SpawnBlock("Rainbow") end})
 local b5 = MainTab:CreateButton({Name = "Galaxy Block 🌠", Callback = function() SpawnBlock("Galaxy") end})
+
+-- [ TARGET SYSTEM ]
+local function getPlayerNames()
+    local names = {}
+    for _, v in pairs(game.Players:GetPlayers()) do
+        if v ~= game.Players.LocalPlayer then table.insert(names, v.Name) end
+    end
+    return names
+end
+
+local TargetDropdown = TargetTab:CreateDropdown({
+   Name = "Select Target",
+   Options = getPlayerNames(),
+   CurrentOption = "",
+   MultipleOptions = false,
+   Callback = function(Option)
+      selectedPlayer = game.Players:FindFirstChild(Option[1])
+   end,
+})
+
+TargetTab:CreateButton({
+   Name = "Refresh List",
+   Callback = function() TargetDropdown:Refresh(getPlayerNames()) end,
+})
+
+TargetTab:CreateToggle({
+   Name = "Target Kill (Need Weapon)",
+   CurrentValue = false,
+   Callback = function(Value)
+       loopKill = Value
+       task.spawn(function()
+           while loopKill do
+               task.wait(0.01)
+               if selectedPlayer and selectedPlayer.Character and selectedPlayer.Character:FindFirstChild("Head") then
+                   local tool = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
+                   if tool and tool:FindFirstChild("Handle") then
+                       firetouchinterest(selectedPlayer.Character.Head, tool.Handle, 0)
+                       firetouchinterest(selectedPlayer.Character.Head, tool.Handle, 1)
+                   end
+               end
+           end
+       end)
+   end,
+})
+
+TargetTab:CreateButton({
+   Name = "Teleport to Target",
+   Callback = function()
+       if selectedPlayer and selectedPlayer.Character then
+           game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = selectedPlayer.Character.HumanoidRootPart.CFrame
+       end
+   end,
+})
 
 -- [ COMBAT ]
 local c1 = CombatTab:CreateToggle({
@@ -53,18 +110,12 @@ local c1 = CombatTab:CreateToggle({
                while _G.KillAuraActive do
                    task.wait(0.03)
                    local p = game.Players.LocalPlayer
-                   local char = p.Character
-                   local tool = char and char:FindFirstChildOfClass("Tool")
-                   
+                   local tool = p.Character and p.Character:FindFirstChildOfClass("Tool")
                    if tool and tool:FindFirstChild("Handle") then
                        for _, v in pairs(game.Players:GetPlayers()) do
                            if v ~= p and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
-                               -- Проверка на друзей (Вайтлист)
-                               if _G.WhitelistedFriends and p:IsFriendsWith(v.UserId) then
-                                   continue 
-                               end
-
-                               local dist = (char.HumanoidRootPart.Position - v.Character.HumanoidRootPart.Position).Magnitude
+                               if _G.WhitelistedFriends and p:IsFriendsWith(v.UserId) then continue end
+                               local dist = (p.Character.HumanoidRootPart.Position - v.Character.HumanoidRootPart.Position).Magnitude
                                if dist <= _G.KillAuraRange then
                                    firetouchinterest(v.Character.Head, tool.Handle, 0)
                                    firetouchinterest(v.Character.Head, tool.Handle, 1)
@@ -81,14 +132,7 @@ local c1 = CombatTab:CreateToggle({
 CombatTab:CreateToggle({
    Name = "Whitelist Friends",
    CurrentValue = false,
-   Callback = function(Value)
-       _G.WhitelistedFriends = Value
-       Rayfield:Notify({
-          Title = "Whitelist",
-          Content = Value and "Friends are now safe! ✅" or "Friends are now targets! 🔥",
-          Duration = 3
-       })
-   end,
+   Callback = function(Value) _G.WhitelistedFriends = Value end,
 })
 
 local c2 = CombatTab:CreateSlider({
