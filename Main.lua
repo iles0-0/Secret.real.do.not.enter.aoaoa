@@ -147,7 +147,7 @@ local c2 = CombatTab:CreateSlider({
 
 -- [ PLAYER ]
 local p3 = PlayerTab:CreateToggle({
-   Name = "Permanent ForceField",
+   Name = "Permanent ForceField (I'm still working on it)",
    CurrentValue = false,
    Callback = function(Value)
        _G.ForceFieldLoop = Value
