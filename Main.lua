@@ -9,13 +9,13 @@ _G.KillAuraRange = 15
 _G.InfJump = false
 _G.WhitelistedFriends = false
 _G.Spectating = false
-_G.AutoSpeedEnabled = false -- Для авто-скорости
-_G.TargetSpeed = 16 -- Значение скорости
+_G.AutoSpeedEnabled = false 
+_G.TargetSpeed = 16 
 local selectedPlayer = nil
 local loopKill = false
 
 local Window = Rayfield:CreateWindow({
-   Name = "Lucky Block BattleGrounds 📦 | v3.0",
+   Name = "Lucky Block Battlegrounds",
    LoadingTitle = "by Iles_q",
    LoadingSubtitle = "Loading...", 
    ConfigurationSaving = {Enabled = false},
@@ -177,15 +177,15 @@ local p1 = PlayerTab:CreateSlider({
    Increment = 1,
    CurrentValue = 16,
    Callback = function(v) 
-       _G.TargetSpeed = v -- Сохраняем значение
-       if game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") then
-           game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = v
+       _G.TargetSpeed = v 
+       local char = game.Players.LocalPlayer.Character
+       if char and char:FindFirstChild("Humanoid") then
+           char.Humanoid.WalkSpeed = v
        end
    end,
 })
 
--- ФУНКЦИЯ AUTO SPEED (Удержание скорости)
-PlayerTab:CreateToggle({
+local pAutoSpeed = PlayerTab:CreateToggle({
    Name = "Auto-Set Speed",
    CurrentValue = false,
    Callback = function(Value)
@@ -193,12 +193,13 @@ PlayerTab:CreateToggle({
        if Value then
            task.spawn(function()
                while _G.AutoSpeedEnabled do
-                   local char = game.Players.LocalPlayer.Character
-                   local hum = char and char:FindFirstChild("Humanoid")
+                   local lp = game.Players.LocalPlayer
+                   local char = lp.Character or lp.CharacterAdded:Wait()
+                   local hum = char:FindFirstChildOfClass("Humanoid")
                    if hum and hum.WalkSpeed ~= _G.TargetSpeed then
                        hum.WalkSpeed = _G.TargetSpeed
                    end
-                   task.wait(0.1) -- Частота проверки
+                   task.wait(0.2)
                end
            end)
        end
@@ -229,6 +230,7 @@ local function ApplyLang(mode)
         c1:Set("Килл Аура (Универсальная)")
         c2:Set("Радиус уничтожения")
         p1:Set("Скорость бега")
+        pAutoSpeed:Set("Авто-установка скорости")
         p2:Set("Бесконечный прыжок")
     else
         b1:Set("Lucky Block 📦")
@@ -239,6 +241,7 @@ local function ApplyLang(mode)
         c1:Set("Kill Aura (Universal)")
         c2:Set("Destruction Range")
         p1:Set("Walk Speed")
+        pAutoSpeed:Set("Auto-Set Speed")
         p2:Set("Infinite Jump")
     end
 end
@@ -250,5 +253,5 @@ SettingsTab:CreateDropdown({
    Callback = function(Option) ApplyLang(Option[1]) end,
 })
 
-Rayfield:Notify({Title = "Success!", Content = "Thank you for using my script", Duration = 5})
-ApplyLang("English") 
+Rayfield:Notify({Title = "Success", Content = "Script Loaded", Duration = 5})
+ApplyLang("English")
