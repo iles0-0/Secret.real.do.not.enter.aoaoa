@@ -1,5 +1,4 @@
 -- [[ Iles_q - Thx for using ]] --
--- Waiting for loading
 if not game:IsLoaded() then game.Loaded:Wait() end
 
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
@@ -9,8 +8,9 @@ _G.KillAuraActive = false
 _G.KillAuraRange = 15
 _G.InfJump = false
 _G.WhitelistedFriends = false
-_G.RapidAbility = false
 _G.Spectating = false
+_G.AutoSpeedEnabled = false -- Для авто-скорости
+_G.TargetSpeed = 16 -- Значение скорости
 local selectedPlayer = nil
 local loopKill = false
 
@@ -92,37 +92,30 @@ TargetTab:CreateToggle({
    end,
 })
 
--- SPECTATE С АВТО-ВЫКЛЮЧЕНИЕМ ПРИ ВЫХОДЕ ИГРОКА
-local SpectateToggle = TargetTab:CreateToggle({
+TargetTab:CreateToggle({
    Name = "Spectate Target",
    CurrentValue = false,
    Callback = function(Value)
        _G.Spectating = Value
        local cam = workspace.CurrentCamera
        local lp = game.Players.LocalPlayer
-       
        if _G.Spectating then
            task.spawn(function()
                while _G.Spectating do
                    task.wait()
-                   -- Проверка: на сервере ли еще игрок?
                    if selectedPlayer and selectedPlayer.Parent == game.Players then
                        if selectedPlayer.Character and selectedPlayer.Character:FindFirstChild("Humanoid") then
                            cam.CameraSubject = selectedPlayer.Character.Humanoid
                        end
                    else
-                       -- Игрок вышел! Выключаем всё
                        _G.Spectating = false
                        break 
                    end
                end
-               -- Возвращаем камеру и визуально выключаем тумблер в меню
                if lp.Character and lp.Character:FindFirstChild("Humanoid") then
                    cam.CameraSubject = lp.Character.Humanoid
                    cam.CameraType = Enum.CameraType.Custom
                end
-               -- Эта строчка выключает галочку в интерфейсе
-               -- SpectateToggle:Set(false) -- Раскомментируй, если Rayfield поддерживает :Set для Toggle
            end)
        else
            if lp.Character and lp.Character:FindFirstChild("Humanoid") then
@@ -184,8 +177,30 @@ local p1 = PlayerTab:CreateSlider({
    Increment = 1,
    CurrentValue = 16,
    Callback = function(v) 
+       _G.TargetSpeed = v -- Сохраняем значение
        if game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") then
            game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = v
+       end
+   end,
+})
+
+-- ФУНКЦИЯ AUTO SPEED (Удержание скорости)
+PlayerTab:CreateToggle({
+   Name = "Auto-Set Speed",
+   CurrentValue = false,
+   Callback = function(Value)
+       _G.AutoSpeedEnabled = Value
+       if Value then
+           task.spawn(function()
+               while _G.AutoSpeedEnabled do
+                   local char = game.Players.LocalPlayer.Character
+                   local hum = char and char:FindFirstChild("Humanoid")
+                   if hum and hum.WalkSpeed ~= _G.TargetSpeed then
+                       hum.WalkSpeed = _G.TargetSpeed
+                   end
+                   task.wait(0.1) -- Частота проверки
+               end
+           end)
        end
    end,
 })
@@ -235,5 +250,5 @@ SettingsTab:CreateDropdown({
    Callback = function(Option) ApplyLang(Option[1]) end,
 })
 
-Rayfield:Notify({Title = "Success!", Content = "Thank you for using my script!", Duration = 5})
-ApplyLang("English")
+Rayfield:Notify({Title = "Success!", Content = "Thank you for using my script", Duration = 5})
+ApplyLang("English") 
