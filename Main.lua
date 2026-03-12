@@ -10,6 +10,7 @@ _G.KillAuraRange = 15
 _G.InfJump = false
 _G.WhitelistedFriends = false
 _G.RapidAbility = false
+_G.ForceFieldLoop = false -- Переменная для FF
 local selectedPlayer = nil
 local loopKill = false
 
@@ -130,8 +131,6 @@ local c1 = CombatTab:CreateToggle({
    end,
 })
 
-
-
 CombatTab:CreateToggle({
    Name = "Whitelist Friends",
    CurrentValue = false,
@@ -147,6 +146,29 @@ local c2 = CombatTab:CreateSlider({
 })
 
 -- [ PLAYER ]
+local p3 = PlayerTab:CreateToggle({
+   Name = "Permanent ForceField",
+   CurrentValue = false,
+   Callback = function(Value)
+       _G.ForceFieldLoop = Value
+       if Value then
+           task.spawn(function()
+               while _G.ForceFieldLoop do
+                   local char = game.Players.LocalPlayer.Character
+                   if char and not char:FindFirstChildOfClass("ForceField") then
+                       Instance.new("ForceField", char)
+                   end
+                   task.wait(0.1)
+               end
+               local char = game.Players.LocalPlayer.Character
+               if char and char:FindFirstChildOfClass("ForceField") then
+                   char:FindFirstChildOfClass("ForceField"):Destroy()
+               end
+           end)
+       end
+   end,
+})
+
 local p1 = PlayerTab:CreateSlider({
    Name = "Walk Speed",
    Range = {16, 200},
@@ -182,9 +204,9 @@ local function ApplyLang(mode)
         b5:Set("Галактический блок 🌠")
         c1:Set("Килл Аура (Универсальная)")
         c2:Set("Радиус уничтожения")
-        c3:Set("Без кулдауна")
         p1:Set("Скорость бега")
         p2:Set("Бесконечный прыжок")
+        p3:Set("Режим бога (FF)")
     else
         b1:Set("Lucky Block 📦")
         b2:Set("Super Block ⭐")
@@ -193,9 +215,9 @@ local function ApplyLang(mode)
         b5:Set("Galaxy Block 🌠")
         c1:Set("Kill Aura (Universal)")
         c2:Set("Destruction Range")
-        c3:Set("No Cooldown Abilities")
         p1:Set("Walk Speed")
         p2:Set("Infinite Jump")
+        p3:Set("Permanent ForceField")
     end
 end
 
