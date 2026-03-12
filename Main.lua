@@ -235,5 +235,5 @@ SettingsTab:CreateDropdown({
    Callback = function(Option) ApplyLang(Option[1]) end,
 })
 
-Rayfield:Notify({Title = "Success!", Content = "Auto-Spectate System Loaded", Duration = 5})
+Rayfield:Notify({Title = "Success!", Content = "Thank you for using my script!", Duration = 5})
 ApplyLang("English")
