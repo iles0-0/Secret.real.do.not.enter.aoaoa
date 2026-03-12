@@ -10,6 +10,7 @@ _G.KillAuraRange = 15
 _G.InfJump = false
 _G.WhitelistedFriends = false
 _G.RapidAbility = false
+_G.Spectating = false
 local selectedPlayer = nil
 local loopKill = false
 
@@ -91,11 +92,43 @@ TargetTab:CreateToggle({
    end,
 })
 
-TargetTab:CreateButton({
-   Name = "Teleport to Target",
-   Callback = function()
-       if selectedPlayer and selectedPlayer.Character then
-           game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = selectedPlayer.Character.HumanoidRootPart.CFrame
+-- SPECTATE С АВТО-ВЫКЛЮЧЕНИЕМ ПРИ ВЫХОДЕ ИГРОКА
+local SpectateToggle = TargetTab:CreateToggle({
+   Name = "Spectate Target",
+   CurrentValue = false,
+   Callback = function(Value)
+       _G.Spectating = Value
+       local cam = workspace.CurrentCamera
+       local lp = game.Players.LocalPlayer
+       
+       if _G.Spectating then
+           task.spawn(function()
+               while _G.Spectating do
+                   task.wait()
+                   -- Проверка: на сервере ли еще игрок?
+                   if selectedPlayer and selectedPlayer.Parent == game.Players then
+                       if selectedPlayer.Character and selectedPlayer.Character:FindFirstChild("Humanoid") then
+                           cam.CameraSubject = selectedPlayer.Character.Humanoid
+                       end
+                   else
+                       -- Игрок вышел! Выключаем всё
+                       _G.Spectating = false
+                       break 
+                   end
+               end
+               -- Возвращаем камеру и визуально выключаем тумблер в меню
+               if lp.Character and lp.Character:FindFirstChild("Humanoid") then
+                   cam.CameraSubject = lp.Character.Humanoid
+                   cam.CameraType = Enum.CameraType.Custom
+               end
+               -- Эта строчка выключает галочку в интерфейсе
+               -- SpectateToggle:Set(false) -- Раскомментируй, если Rayfield поддерживает :Set для Toggle
+           end)
+       else
+           if lp.Character and lp.Character:FindFirstChild("Humanoid") then
+               cam.CameraSubject = lp.Character.Humanoid
+               cam.CameraType = Enum.CameraType.Custom
+           end
        end
    end,
 })
@@ -129,8 +162,6 @@ local c1 = CombatTab:CreateToggle({
        end
    end,
 })
-
-
 
 CombatTab:CreateToggle({
    Name = "Whitelist Friends",
@@ -182,7 +213,6 @@ local function ApplyLang(mode)
         b5:Set("Галактический блок 🌠")
         c1:Set("Килл Аура (Универсальная)")
         c2:Set("Радиус уничтожения")
-        c3:Set("Без кулдауна")
         p1:Set("Скорость бега")
         p2:Set("Бесконечный прыжок")
     else
@@ -193,7 +223,6 @@ local function ApplyLang(mode)
         b5:Set("Galaxy Block 🌠")
         c1:Set("Kill Aura (Universal)")
         c2:Set("Destruction Range")
-        c3:Set("No Cooldown Abilities")
         p1:Set("Walk Speed")
         p2:Set("Infinite Jump")
     end
@@ -206,5 +235,5 @@ SettingsTab:CreateDropdown({
    Callback = function(Option) ApplyLang(Option[1]) end,
 })
 
-Rayfield:Notify({Title = "Success!", Content = "Thank you for using my script", Duration = 5})
-ApplyLang("English") 
+Rayfield:Notify({Title = "Success!", Content = "Auto-Spectate System Loaded", Duration = 5})
+ApplyLang("English")
