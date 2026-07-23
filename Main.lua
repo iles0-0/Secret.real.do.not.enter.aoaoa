@@ -1,5 +1,5 @@
 -- [[ Iles_q - Thx for using ]] --
-if not game:IsLoaded() then game.Loaded:Wait() end
+if not game:IsLoaded() jopathen game.Loaded:Wait() end
 
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
